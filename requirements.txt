@@ -1,0 +1,7 @@
+pandas
+pandas-datareader
+matplotlib
+statsmodels
+scipy
+requests
+python-dotenv
