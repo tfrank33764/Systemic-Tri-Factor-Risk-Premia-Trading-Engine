@@ -20,13 +20,16 @@ def adjusted_open(df: pd.DataFrame) -> pd.DataFrame:
     if len(traded) > 1 and (traded.iloc[-1] > 5 * traded.iloc[-2] or traded.iloc[-1] < traded.iloc[-2]/5): 
         df.loc[traded.index[-1], "adjusted_open"] = float("nan")
 
-    # When a company files Chapter 11 and restructures, their old shares are voided and new shares are reissued. This was not accounted for in EODHD data.
-    # Similar to the mistaken acquisition prices above, this was leading to extreme returns (+11,406%) when these shares are really worthless. 
-    # To account for this, I dropped all prior trading prices following days when stocks changed by a factor of 10 or greater. 
+    # This error is similar to the one above. A ticker file can contain more than one company (with the same ticker), leading to extreme returns that should not happen (ex. +11,406%).
+    # This block here ensures that the one trading during the window of this backtest is kept by filtering by a factor of 10.
     daily = df["adjusted_open"] / df["adjusted_open"].shift(1)
     splices = daily[(daily > 10) | (daily < 0.1)]
-    if not splices.empty:
-        df.loc[df.index < splices.index[-1], "adjusted_open"] = float("nan")
+    before = splices[splices.index < pd.Timestamp("2019-01-01")]
+    during = splices[splices.index >= pd.Timestamp("2019-01-01")]
+    if not before.empty:
+        df.loc[df.index < before.index[-1], "adjusted_open"] = float("nan")
+    if not during.empty: 
+        df.loc[df.index >= during.index[0], "adjusted_open"] = float("nan")
     return df
 
 

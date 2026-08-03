@@ -55,12 +55,15 @@ def cap_on_date(ticker: str, as_of_date: str) -> float:
         w = json.load(f)
         if not w:
             return float("nan")
-    prices = adjusted_open(pd.DataFrame(w).sort_values("date"))
-    asof = prices[prices["date"] >= as_of_date]
+    df = pd.DataFrame(w)
+    df["date"] = pd.to_datetime(df["date"])
+    df = df.set_index("date").sort_index()
+    prices = adjusted_open(df)
+    asof = prices[prices.index >= as_of_date]
     if asof.empty:
         return float("nan")
     row = asof.iloc[0]
-    if pd.Timestamp(row["date"]) - pd.Timestamp(as_of_date) > pd.Timedelta(days=7):
+    if row.name - pd.Timestamp(as_of_date) > pd.Timedelta(days=7):
         return float("nan")
     adj_open = row["adjusted_open"]
     with open(DATA_DIR / "fundamentals" / f"{ticker}.json", encoding="utf-8") as f:
