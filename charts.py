@@ -34,6 +34,8 @@ def drawdown(returns: pd.Series, savepath: str = None) -> None:
     ax.set_title("Drawdown Over Time")
     ax.set_xlabel("Date")
     ax.set_ylabel("Drawdown")
+    ax.set_xlim(drawdown.index[0], drawdown.index[-1])
+    ax.set_ylim(top=0)
     if savepath:
         fig.savefig(savepath)
     else:
@@ -48,8 +50,8 @@ def ret_tab(returns: pd.Series) -> pd.DataFrame:
 
 def heatmap(returns: pd.Series, savepath: str = None) -> None:
     table = ret_tab(returns)
-    fig, ax = plt.subplots()
-    im = ax.imshow(table.values, cmap="RdYlGn")
+    fig, ax = plt.subplots(figsize= (12, 5))
+    im = ax.imshow(table.values, cmap="RdBu", aspect = "auto")
     ax.set_yticks(range(len(table.index)))
     ax.set_yticklabels(table.index)
     ax.set_xticks(range(len(table.columns)))
@@ -58,7 +60,7 @@ def heatmap(returns: pd.Series, savepath: str = None) -> None:
         for j in range(len(table.columns)):
             value = table.values[i, j]
             if pd.notna(value):
-                ax.text(j, i, f"{value:.1%}", ha="center", va="center")
+                ax.text(j, i, f"{value:.1%}", ha="center", va="center", fontsize = 7)
     fig.colorbar(im, ax=ax)
     ax.set_title("Monthly Return Heatmap")
     ax.set_xlabel("Month")
